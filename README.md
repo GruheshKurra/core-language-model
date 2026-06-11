@@ -1,8 +1,8 @@
-# Zynthetix AL-1 — Core Language Model
+# Core Language Model
 
 A small coding + general-purpose language model built **from scratch in pure NumPy** — no PyTorch, no JAX, no autograd library. Every piece (autograd engine, tokenizer, attention, layer norm) is hand-written and gradient-checked.
 
-This is the foundation module of the larger Zynthetix project: a from-first-principles build of a transformer language model, aimed at understanding every formula well enough to reimplement it without reference.
+This is a from-first-principles build of a transformer language model, aimed at understanding every formula well enough to reimplement it without reference.
 
 ## Why pure NumPy?
 

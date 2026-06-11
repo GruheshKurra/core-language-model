@@ -1,4 +1,4 @@
-# Zynthetix AL-1 — Build Checklist
+# Core Language Model — Build Checklist
 
 NumPy only. Build + test each yourself. Don't move on until current item works.
 
