@@ -1,0 +1,39 @@
+# Data — too large for git, regenerate via scripts/prepare_corpus.py
+data/raw/
+data/processed/
+
+# Model artifacts
+checkpoints/
+
+# Internal agent/task tracking — never commit
+tasks/
+prompts/
+ClaudeAgent.md
+AGENTS.md
+AGENT.md
+CLAUDE.md
+
+# Learning documentation — private
+docs/*/explanation.md
+docs/*/technical_documentation.md
+docs/*/lessons.md
+
+# Plans and task files
+*.plan.md
+todo.md
+lessons.md
+CHANGELOG.md
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Python / OS / editor
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+.idea/
+.vscode/
