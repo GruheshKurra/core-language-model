@@ -25,14 +25,14 @@ NumPy only. Build + test each yourself. Don't move on until current item works.
 - [x] Self-attention (Q/K/V, scaling, causal mask)
 - [x] Multi-head
 - [x] LayerNorm
-- [ ] MLP block
-- [ ] Residual connections
-- [ ] Stack blocks into full GPT + config
+- [x] MLP block
+- [x] Residual connections
+- [x] Stack blocks into full GPT + config
 
 ## Pretraining
 
-- [ ] Cross-entropy loss
-- [ ] Adam/AdamW optimizer
+- [x] Cross-entropy loss
+- [x] Adam/AdamW optimizer
 - [ ] Gradient clipping
 - [ ] LR warmup + decay
 - [ ] Sanity overfit one paragraph

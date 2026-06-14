@@ -104,6 +104,20 @@ class Tensor:
         out._backward = _backward
         return out
 
+    def gelu(self):
+        c = np.sqrt(2.0 / np.pi)
+        x = self.data
+        inner = c * (x + 0.044715 * x ** 3)
+        t = np.tanh(inner)
+        out = Tensor(0.5 * x * (1.0 + t), (self,))
+
+        def _backward():
+            d_inner = c * (1.0 + 3.0 * 0.044715 * x ** 2)
+            dx = 0.5 * (1.0 + t) + 0.5 * x * (1.0 - t * t) * d_inner
+            self.grad += dx * out.grad
+        out._backward = _backward
+        return out
+
     def exp(self):
         out = Tensor(np.exp(self.data), (self,))
 
