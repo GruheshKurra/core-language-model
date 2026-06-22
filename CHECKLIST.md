@@ -33,17 +33,17 @@ NumPy only. Build + test each yourself. Don't move on until current item works.
 
 - [x] Cross-entropy loss
 - [x] Adam/AdamW optimizer
-- [ ] Gradient clipping
-- [ ] LR warmup + decay
-- [ ] Sanity overfit one paragraph
-- [ ] Training loop
-- [ ] Checkpoint save/load/resume
+- [x] Gradient clipping
+- [x] LR warmup + decay
+- [x] Sanity overfit one paragraph
+- [x] Training loop
+- [x] Checkpoint save/load/resume
 
 ## Evaluation
 
-- [ ] Val loss + perplexity
-- [ ] Next-token accuracy
-- [ ] Sample generations per checkpoint
+- [x] Val loss + perplexity
+- [x] Next-token accuracy
+- [x] Sample generations per checkpoint
 
 ## Fine-tuning
 
