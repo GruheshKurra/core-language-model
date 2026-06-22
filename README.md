@@ -12,12 +12,23 @@ The goal isn't a competitive model — it's a fully transparent one. Every tenso
 
 ```
 zyn/                Core library
-├── tensor.py       Autograd Tensor: add, mul, matmul, relu, exp, log, sum, broadcasting
+├── tensor.py       Autograd Tensor: add, mul, matmul, relu, gelu, exp, log, sum, gather, broadcasting
 ├── gradcheck.py     Numerical gradient checker (verifies backward() against finite differences)
 ├── embedding.py     Token embedding layer
 ├── positional.py     Positional encoding
 ├── attention.py      Scaled dot-product self-attention with causal masking
-├── layernorm.py       Layer normalization
+├── multihead.py       Multi-head attention
+├── layernorm.py        Layer normalization
+├── mlp.py              Feed-forward block
+├── block.py            Transformer block (attention + MLP + residual + layer norm)
+├── gpt.py              Full GPT stack + GPTConfig (tied embeddings)
+├── loss.py             Cross-entropy with ignore_index masking
+├── optim.py            AdamW + gradient clipping
+├── schedule.py         Cosine LR with warmup/decay
+├── train.py            Training loop + single train step
+├── checkpoint.py       Save / load / resume (weights + optimizer state)
+├── eval.py             Val loss, perplexity, next-token accuracy
+├── generate.py         Sampling: greedy / temperature / top-k / top-p
 ├── batching.py        Next-token (x, y) batch construction
 └── bpe.py             Byte-pair encoding tokenizer (train, encode, decode, special tokens)
 
@@ -33,11 +44,11 @@ checkpoints/          Saved model weights (not tracked)
 
 ## Status
 
-Built incrementally with a strict checklist — gradient-checked autograd, BPE tokenizer with special tokens, batching, embeddings, positional encoding, self-attention, multi-head attention, and layer norm are complete and tested.
+Built incrementally with a strict checklist. **Complete and tested:** gradient-checked autograd, BPE tokenizer with special tokens, batching, embeddings, positional encoding, self-attention, multi-head attention, layer norm, MLP, transformer block with residuals, the full GPT stack, cross-entropy loss, AdamW with gradient clipping, cosine LR warmup/decay, training loop, checkpoint save/load/resume, and the evaluation suite (val loss, perplexity, next-token accuracy, sampling generation).
 
-In progress: MLP block, residual connections, and assembling the full GPT-style transformer stack.
+A one-paragraph overfit test drives loss below 0.05 with exact token-level memorization, proving the autograd + training stack learns end-to-end.
 
-Planned: pretraining loop (cross-entropy, AdamW, warmup/decay), instruction + tool-calling fine-tuning, sampling (greedy/temperature/top-k/top-p) with KV-cache, and a `/generate` serving API.
+Planned: instruction + tool-calling fine-tuning (loss masking is already wired via `ignore_index`), KV-cache for inference, and a `/generate` serving API.
 
 ## Data strategy
 
@@ -56,7 +67,7 @@ BPE vocabulary: 8k–16k tokens, with reserved special tokens (`<pad>`, `<bos>`,
 python -m pytest -q
 ```
 
-42 tests covering the autograd engine, gradient checks, embeddings, positional encoding, attention, multi-head attention, and layer normalization.
+102 tests covering the autograd engine, gradient checks, tokenizer, batching, every model layer, the full GPT stack, loss, optimizer, LR schedule, gradient clipping, training loop, checkpointing, evaluation, and sampling.
 
 ## Scale
 
