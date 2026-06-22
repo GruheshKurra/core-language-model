@@ -17,6 +17,7 @@ CLAUDE.md
 docs/*/explanation.md
 docs/*/technical_documentation.md
 docs/*/lessons.md
+docs/INTUITION.md
 
 # Plans and task files
 *.plan.md

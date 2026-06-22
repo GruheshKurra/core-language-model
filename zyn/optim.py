@@ -5,6 +5,18 @@ import numpy as np
 from zyn.tensor import Tensor
 
 
+def clip_grad_norm(params: list[Tensor], max_norm: float, eps: float = 1e-6) -> float:
+    total_sq = 0.0
+    for p in params:
+        total_sq += float((p.grad * p.grad).sum())
+    total_norm = float(np.sqrt(total_sq))
+    if total_norm > max_norm:
+        scale = max_norm / (total_norm + eps)
+        for p in params:
+            p.grad = p.grad * scale
+    return total_norm
+
+
 class AdamW:
 
     def __init__(
