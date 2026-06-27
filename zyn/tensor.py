@@ -1,5 +1,6 @@
 from __future__ import annotations
-import numpy as np
+from zyn.backend import xp as np
+from zyn.backend import fdtype
 
 
 def _unbroadcast(grad: np.ndarray, shape: tuple) -> np.ndarray:
@@ -13,7 +14,7 @@ def _unbroadcast(grad: np.ndarray, shape: tuple) -> np.ndarray:
 
 class Tensor:
     def __init__(self, data, _children=(), requires_grad=True):
-        self.data = np.asarray(data, dtype=np.float64)
+        self.data = np.asarray(data, dtype=fdtype)
         self.grad = np.zeros_like(self.data)
         self.requires_grad = requires_grad
         self._backward = lambda: None
@@ -100,7 +101,7 @@ class Tensor:
         out = Tensor(np.maximum(0.0, self.data), (self,))
 
         def _backward():
-            self.grad += (self.data > 0).astype(np.float64) * out.grad
+            self.grad += (self.data > 0).astype(fdtype) * out.grad
         out._backward = _backward
         return out
 
@@ -159,14 +160,19 @@ class Tensor:
     def backward(self):
         topo = []
         visited = set()
-
-        def build(node):
-            if node not in visited:
-                visited.add(node)
-                for child in node._prev:
-                    build(child)
+        stack = [(self, False)]
+        while stack:
+            node, processed = stack.pop()
+            if processed:
                 topo.append(node)
-        build(self)
+                continue
+            if node in visited:
+                continue
+            visited.add(node)
+            stack.append((node, True))
+            for child in node._prev:
+                if child not in visited:
+                    stack.append((child, False))
 
         self.grad = np.ones_like(self.data)
         for node in reversed(topo):

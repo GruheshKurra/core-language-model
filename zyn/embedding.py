@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
+from zyn.backend import xp as np
+from zyn.backend import fdtype
 from zyn.tensor import Tensor
 
 
@@ -17,7 +17,7 @@ class Embedding:
         self.vocab_size = vocab_size
         self.d_model = d_model
         self.padding_idx = padding_idx
-        w = np.random.randn(vocab_size, d_model).astype(np.float64) * std
+        w = np.random.randn(vocab_size, d_model).astype(fdtype) * std
         if padding_idx is not None:
             w[padding_idx] = 0.0
         self.weight = Tensor(w)

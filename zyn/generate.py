@@ -1,12 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
-
-def _softmax(x: np.ndarray) -> np.ndarray:
-    m = np.max(x, axis=-1, keepdims=True)
-    e = np.exp(x - m)
-    return e / e.sum(axis=-1, keepdims=True)
+from zyn.backend import xp as np
+from zyn.functional import softmax as _softmax
 
 
 def _top_k_filter(logits: np.ndarray, k: int) -> np.ndarray:

@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import numpy as np
-
+from zyn.backend import xp as np
 from zyn.block import TransformerBlock
 from zyn.embedding import Embedding
 from zyn.layernorm import LayerNorm

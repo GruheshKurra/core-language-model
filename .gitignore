@@ -13,11 +13,12 @@ AGENTS.md
 AGENT.md
 CLAUDE.md
 
-# Learning documentation — private
-docs/*/explanation.md
-docs/*/technical_documentation.md
-docs/*/lessons.md
-docs/INTUITION.md
+# Learning documentation — private (whole docs tree stays local)
+docs/
+
+# Markdown — only README is published
+*.md
+!README.md
 
 # Plans and task files
 *.plan.md

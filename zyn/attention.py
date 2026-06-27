@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
+from zyn.backend import xp as np
+from zyn.backend import fdtype
 from zyn.tensor import Tensor
 
 
@@ -10,10 +10,10 @@ class SelfAttention:
     def __init__(self, d_model: int, std: float = 0.02):
         self.d_model = d_model
         self.scale = 1.0 / np.sqrt(d_model)
-        self.W_q = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
-        self.W_k = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
-        self.W_v = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
-        self.W_o = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
+        self.W_q = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
+        self.W_k = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
+        self.W_v = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
+        self.W_o = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
 
     def __call__(self, x: Tensor) -> Tensor:
         if x.data.ndim != 3:
@@ -46,10 +46,10 @@ class MultiHeadAttention:
         self.n_head = n_head
         self.d_head = d_model // n_head
         self.scale = 1.0 / np.sqrt(self.d_head)
-        self.W_q = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
-        self.W_k = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
-        self.W_v = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
-        self.W_o = Tensor(np.random.randn(d_model, d_model).astype(np.float64) * std)
+        self.W_q = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
+        self.W_k = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
+        self.W_v = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
+        self.W_o = Tensor(np.random.randn(d_model, d_model).astype(fdtype) * std)
 
     def _split(self, t: Tensor, B: int, T: int) -> Tensor:
         return t.reshape(B, T, self.n_head, self.d_head).transpose(1, 2)

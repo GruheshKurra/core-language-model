@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
+from zyn.backend import xp as np
+from zyn.backend import fdtype
 from zyn.tensor import Tensor
 
 
@@ -10,7 +10,7 @@ class PositionalEmbedding:
     def __init__(self, max_seq: int, d_model: int, std: float = 0.02):
         self.max_seq = max_seq
         self.d_model = d_model
-        w = np.random.randn(max_seq, d_model).astype(np.float64) * std
+        w = np.random.randn(max_seq, d_model).astype(fdtype) * std
         self.weight = Tensor(w)
 
     def __call__(self, seq_len: int) -> Tensor:

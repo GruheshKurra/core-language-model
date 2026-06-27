@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
-
+from zyn.backend import xp as np
 from zyn.tensor import Tensor
 
 
@@ -22,13 +21,15 @@ def cross_entropy(logits: Tensor, targets: np.ndarray, ignore_index: int | None 
     log_sum_exp = m + np.log(sum_exp)
     probs = exp / sum_exp
 
-    rows = np.arange(flat.shape[0])
-    nll = log_sum_exp[:, 0] - flat[rows, t]
-
     if ignore_index is not None:
         keep = t != ignore_index
     else:
         keep = np.ones_like(t, dtype=bool)
+    safe_t = np.where(keep, t, 0)
+
+    rows = np.arange(flat.shape[0])
+    nll = log_sum_exp[:, 0] - flat[rows, safe_t]
+
     count = int(keep.sum())
     if count == 0:
         raise ValueError("all targets are ignore_index; no tokens to score")
@@ -38,7 +39,7 @@ def cross_entropy(logits: Tensor, targets: np.ndarray, ignore_index: int | None 
 
     def _backward():
         grad = probs.copy()
-        grad[rows, t] -= 1.0
+        grad[rows, safe_t] -= 1.0
         grad[~keep] = 0.0
         grad /= count
         logits.grad += (grad * out.grad).reshape(z.shape)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import numpy as np
-
+from zyn.backend import xp as np
+from zyn.backend import fdtype
 from zyn.tensor import Tensor
 
 
@@ -10,8 +10,8 @@ class LayerNorm:
     def __init__(self, d_model: int, eps: float = 1e-5):
         self.d_model = d_model
         self.eps = eps
-        self.gamma = Tensor(np.ones(d_model, dtype=np.float64))
-        self.beta = Tensor(np.zeros(d_model, dtype=np.float64))
+        self.gamma = Tensor(np.ones(d_model, dtype=fdtype))
+        self.beta = Tensor(np.zeros(d_model, dtype=fdtype))
 
     def __call__(self, x: Tensor) -> Tensor:
         if x.shape[-1] != self.d_model:

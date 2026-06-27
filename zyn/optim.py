@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
-
+from zyn.backend import xp as np
 from zyn.tensor import Tensor
 
 
