@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 from typing import Iterable
 
 import numpy as np
@@ -33,6 +34,9 @@ def evaluate(model, batches: Iterable[tuple[np.ndarray, np.ndarray]], ignore_ind
         total_nll += float((nll * keep).sum())
         total_correct += int(((preds == t) & keep).sum())
         total_tokens += int(keep.sum())
+
+        del logits, flat
+        gc.collect()
 
     if total_tokens == 0:
         raise ValueError("no tokens to evaluate")

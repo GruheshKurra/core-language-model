@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import sys
 from pathlib import Path
@@ -95,8 +96,12 @@ def main() -> None:
         grad_norm = clip_grad_norm(model.parameters(), max_norm)
         optimizer.step()
 
+        loss_val = float(loss.data)
+        del logits, loss
+        gc.collect()
+
         if log_every and step % log_every == 0:
-            print(f"step {step:6d} | loss {float(loss.data):.4f} | gnorm {grad_norm:.3f} | lr {optimizer.lr:.2e}")
+            print(f"step {step:6d} | loss {loss_val:.4f} | gnorm {grad_norm:.3f} | lr {optimizer.lr:.2e}")
 
         if eval_every and step > 0 and step % eval_every == 0:
             metrics = evaluate(model, _val_batches(val_batcher, eval_batches))
