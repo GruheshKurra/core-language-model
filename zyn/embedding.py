@@ -33,10 +33,11 @@ class Embedding:
         indices = np.asarray(indices, dtype=np.int64)
         if indices.ndim != 2:
             raise ValueError(f"expected (B, T) indices, got shape {indices.shape}")
-        if indices.max(initial=0) >= self.vocab_size or indices.min(initial=0) < 0:
+        hi = int(indices.max()) if indices.size else 0
+        lo = int(indices.min()) if indices.size else 0
+        if hi >= self.vocab_size or lo < 0:
             raise ValueError(
-                f"index out of range [0, {self.vocab_size}): "
-                f"min={indices.min()} max={indices.max()}"
+                f"index out of range [0, {self.vocab_size}): min={lo} max={hi}"
             )
         return self.weight.gather(indices, dim=0)
 
