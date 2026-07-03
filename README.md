@@ -128,9 +128,9 @@ ZYN_BACKEND=cuda ZYN_DTYPE=float32 CUPY_TF32=1 \
 
 The `.npy` token files are Git-LFS pointers — `git lfs install` before cloning pulls them automatically. The mirror also lives on GitHub at `GruheshKurra/core-language-model` (code only); `scripts/setup_pod.sh` fetches the data from HF if it's missing, so either clone works.
 
-`configs/a6000.json` uses `batch_size=128`, `seq=256`, `12000` steps (~2.2 epochs over the 180M-token codeparrot shard). `CUPY_TF32=1` enables Ampere tensor-core matmuls; `mmap=false` loads the token stream fully into RAM (the pod has plenty). Checkpoints land in `checkpoints/pretrain-a6000.npz` every 500 steps — resume with `--resume checkpoints/pretrain-a6000.npz`.
+`configs/a6000.json` uses `batch_size=64`, `seq=256`, `22000` steps (~2 epochs over the 180M-token codeparrot shard). `CUPY_TF32=1` enables Ampere tensor-core matmuls; `mmap=false` loads the token stream fully into RAM. Checkpoints land in `checkpoints/pretrain-a6000.npz` every 1000 steps — resume with `--resume checkpoints/pretrain-a6000.npz`.
 
-Run ~50 steps first, check `nvidia-smi` VRAM headroom and step time, then raise `batch_size` if there's room before committing to the full run.
+Batch is capped by memory, not raw VRAM: the from-scratch autograd allocates a gradient buffer for every intermediate activation, so peak usage is ~2× activations. On a 48 GB card batch 64 peaks near ~28 GB (batch 128 OOMs). Watch the first ~50 steps and `nvidia-smi`; only raise `batch_size` if there's clear headroom.
 
 ## Scale
 
