@@ -115,15 +115,18 @@ python scripts/finetune_tools.py --checkpoint checkpoints/instruct.npz
 
 ## RunPod A6000 quickstart
 
-Code lives on GitHub; the tokenized corpus + tokenizer live on the Hugging Face dataset hub (too large for git). On a fresh RunPod PyTorch pod (1× RTX A6000, CUDA 12):
+Everything (code + tokenized corpus + tokenizer) is mirrored on the Hugging Face hub, so one clone is self-contained. On a fresh RunPod PyTorch pod (1× RTX A6000, CUDA 12):
 
 ```bash
-git clone https://github.com/GruheshKurra/core-language-model.git
-cd core-language-model
-bash scripts/setup_pod.sh          # installs deps + cupy + pulls data from HF
+git lfs install
+git clone https://huggingface.co/datasets/karthik-2905/core-language-model-data
+cd core-language-model-data
+bash scripts/setup_pod.sh          # installs deps + cupy (data already present)
 ZYN_BACKEND=cuda ZYN_DTYPE=float32 CUPY_TF32=1 \
   python scripts/pretrain.py --config configs/a6000.json
 ```
+
+The `.npy` token files are Git-LFS pointers — `git lfs install` before cloning pulls them automatically. The mirror also lives on GitHub at `GruheshKurra/core-language-model` (code only); `scripts/setup_pod.sh` fetches the data from HF if it's missing, so either clone works.
 
 `configs/a6000.json` uses `batch_size=128`, `seq=256`, `12000` steps (~2.2 epochs over the 180M-token codeparrot shard). `CUPY_TF32=1` enables Ampere tensor-core matmuls; `mmap=false` loads the token stream fully into RAM (the pod has plenty). Checkpoints land in `checkpoints/pretrain-a6000.npz` every 500 steps — resume with `--resume checkpoints/pretrain-a6000.npz`.
 
