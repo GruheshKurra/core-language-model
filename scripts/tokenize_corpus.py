@@ -16,9 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
 
 
-def encode_stream(tok: BPETokenizer, jsonl_path: Path, max_bytes: int | None) -> list[int]:
+def encode_stream(tok: BPETokenizer, jsonl_path: Path, max_bytes: int | None, dtype) -> np.ndarray:
     cache: dict[str, list[int]] = {}
-    out: list[int] = []
+    chunks: list[np.ndarray] = []
+    buf: list[int] = []
     total = 0
     eos = tok.eos_id
     with jsonl_path.open(encoding="utf-8") as f:
@@ -31,12 +32,19 @@ def encode_stream(tok: BPETokenizer, jsonl_path: Path, max_bytes: int | None) ->
                 if ids is None:
                     ids = tok._encode_word(_word_to_ids(w, tok.byte_base))
                     cache[w] = ids
-                out.extend(ids)
-            out.append(eos)
-            total += len(text)
+                buf.extend(ids)
+            buf.append(eos)
+            total += len(text.encode("utf-8"))
+            if len(buf) >= 1_000_000:
+                chunks.append(np.asarray(buf, dtype=dtype))
+                buf = []
             if max_bytes is not None and total >= max_bytes:
                 break
-    return out
+    if buf:
+        chunks.append(np.asarray(buf, dtype=dtype))
+    if not chunks:
+        return np.asarray([], dtype=dtype)
+    return np.concatenate(chunks)
 
 
 def main() -> None:
@@ -56,8 +64,7 @@ def main() -> None:
     for split in ("train", "val"):
         src = PROCESSED / args.source / f"{split}.jsonl"
         t0 = time.time()
-        ids = encode_stream(tok, src, cap)
-        arr = np.asarray(ids, dtype=dtype)
+        arr = encode_stream(tok, src, cap, dtype)
         out_path = out_dir / f"{args.source}-{split}.npy"
         np.save(out_path, arr)
         print(

@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements-serve.txt
 COPY zyn ./zyn
 COPY serve ./serve
 
+RUN useradd --no-create-home --shell /usr/sbin/nologin appuser
+USER appuser
+
 EXPOSE 8000
 
 CMD ["sh", "-c", "uvicorn serve.app:app --host ${HOST} --port ${PORT}"]

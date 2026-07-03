@@ -63,7 +63,6 @@ class ToolAgent:
                 call = parse_tool_call(tok.decode(collect, skip_specials=True))
                 result = execute(call["name"], call["arguments"], self.sandbox)
                 tool_calls.append({"name": call["name"], "arguments": call["arguments"], "result": result})
-                answer_ids = []
                 inject = [tce, tr] + tok.encode(result + "\n")
                 logits = decoder.feed(np.asarray([inject]))[:, -1, :]
                 turns += 1

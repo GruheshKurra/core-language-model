@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-from zyn.backend import xp as np
-from zyn.functional import softmax as _softmax
+import numpy as np
+
+from zyn.backend import to_numpy
+
+
+def _softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:
+    z = x - x.max(axis=axis, keepdims=True)
+    e = np.exp(z)
+    return e / e.sum(axis=axis, keepdims=True)
 
 
 def _top_k_filter(logits: np.ndarray, k: int) -> np.ndarray:
+    if k <= 0:
+        return logits
     k = min(k, logits.shape[-1])
     kth = np.sort(logits, axis=-1)[:, -k][:, None]
     return np.where(logits < kth, -np.inf, logits)
@@ -61,13 +70,17 @@ def generate(
     if rng is None:
         rng = np.random.default_rng()
     max_seq = model.config.max_seq
+    finished = np.zeros(idx.shape[0], dtype=bool)
 
     for _ in range(max_new_tokens):
         ctx = idx[:, -max_seq:]
-        logits = model(ctx).data[:, -1, :]
+        logits = to_numpy(model(ctx).data[:, -1, :])
         next_ids = _sample_next(logits, temperature, top_k, top_p, rng)
+        if eos_id is not None:
+            next_ids = np.where(finished, eos_id, next_ids)
+            finished = finished | (next_ids == eos_id)
         idx = np.concatenate([idx, next_ids[:, None]], axis=1)
-        if eos_id is not None and bool((next_ids == eos_id).all()):
+        if eos_id is not None and bool(finished.all()):
             break
 
     return idx

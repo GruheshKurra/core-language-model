@@ -1,6 +1,7 @@
 from __future__ import annotations
 from zyn.backend import xp as np
 from zyn.backend import fdtype
+from zyn.backend import scatter_add
 
 
 def _unbroadcast(grad: np.ndarray, shape: tuple) -> np.ndarray:
@@ -153,7 +154,7 @@ class Tensor:
         out = Tensor(np.take(self.data, indices, axis=0), (self,))
 
         def _backward():
-            np.add.at(self.grad, indices, out.grad)
+            scatter_add(self.grad, indices, out.grad)
         out._backward = _backward
         return out
 

@@ -16,23 +16,23 @@ class CachedGPT:
         self.n_head = cfg.n_head
         self.d_head = cfg.d_model // cfg.n_head
         self.scale = 1.0 / np.sqrt(self.d_head)
-        self.tok_emb = np.asarray(model.tok_emb.weight.data)
-        self.pos_emb = np.asarray(model.pos_emb.weight.data)
-        self.lnf = (model.ln_f.gamma.data, model.ln_f.beta.data, model.ln_f.eps)
+        self.tok_emb = np.array(model.tok_emb.weight.data, copy=True)
+        self.pos_emb = np.array(model.pos_emb.weight.data, copy=True)
+        self.lnf = (np.array(model.ln_f.gamma.data, copy=True), np.array(model.ln_f.beta.data, copy=True), model.ln_f.eps)
         self.blocks = []
         for b in model.blocks:
             self.blocks.append(
                 {
-                    "ln1": (b.ln1.gamma.data, b.ln1.beta.data, b.ln1.eps),
-                    "Wq": b.attn.W_q.data,
-                    "Wk": b.attn.W_k.data,
-                    "Wv": b.attn.W_v.data,
-                    "Wo": b.attn.W_o.data,
-                    "ln2": (b.ln2.gamma.data, b.ln2.beta.data, b.ln2.eps),
-                    "W1": b.mlp.W1.data,
-                    "b1": b.mlp.b1.data,
-                    "W2": b.mlp.W2.data,
-                    "b2": b.mlp.b2.data,
+                    "ln1": (np.array(b.ln1.gamma.data, copy=True), np.array(b.ln1.beta.data, copy=True), b.ln1.eps),
+                    "Wq": np.array(b.attn.W_q.data, copy=True),
+                    "Wk": np.array(b.attn.W_k.data, copy=True),
+                    "Wv": np.array(b.attn.W_v.data, copy=True),
+                    "Wo": np.array(b.attn.W_o.data, copy=True),
+                    "ln2": (np.array(b.ln2.gamma.data, copy=True), np.array(b.ln2.beta.data, copy=True), b.ln2.eps),
+                    "W1": np.array(b.mlp.W1.data, copy=True),
+                    "b1": np.array(b.mlp.b1.data, copy=True),
+                    "W2": np.array(b.mlp.W2.data, copy=True),
+                    "b2": np.array(b.mlp.b2.data, copy=True),
                 }
             )
         self.reset()
@@ -120,10 +120,14 @@ def generate_cached(
 
     logits = cached.prefill(idx)
     out = idx
+    finished = np.zeros(idx.shape[0], dtype=bool)
     for step in range(max_new_tokens):
         next_ids = _sample_next(logits, temperature, top_k, top_p, rng)
+        if eos_id is not None:
+            next_ids = np.where(finished, eos_id, next_ids)
+            finished = finished | (next_ids == eos_id)
         out = np.concatenate([out, next_ids[:, None]], axis=1)
-        if eos_id is not None and bool((next_ids == eos_id).all()):
+        if eos_id is not None and bool(finished.all()):
             break
         if step == max_new_tokens - 1:
             break

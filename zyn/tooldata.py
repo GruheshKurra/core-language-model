@@ -36,8 +36,15 @@ def _calc_conversation(rng: np.random.Generator) -> list[dict]:
 def _files_conversation(rng: np.random.Generator, sandbox: Sandbox) -> list[dict]:
     name = f"note_{int(rng.integers(0, 1000))}.txt"
     body = str(rng.choice(["hello world", "todo refactor", "print('hi')"]))
-    write_file(sandbox, name, body)
-    result = list_dir(sandbox, ".")
+    convo_dir = sandbox.root / f"convo_{int(rng.integers(0, 1_000_000_000))}"
+    convo_sandbox = Sandbox(
+        convo_dir,
+        allow_write=sandbox.allow_write,
+        allow_shell=sandbox.allow_shell,
+        timeout=sandbox.timeout,
+    )
+    write_file(convo_sandbox, name, body)
+    result = list_dir(convo_sandbox, ".")
     return [
         {"role": "user", "content": "List the files here."},
         {

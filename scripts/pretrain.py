@@ -43,8 +43,9 @@ def main() -> None:
     tok = BPETokenizer.load(tokenizer_path)
     vocab_size = int(cfg.get("vocab_size") or tok.vocab_size)
 
-    train_tokens = load_tokens(_resolve(cfg["train_tokens"]))
-    val_tokens = load_tokens(_resolve(cfg["val_tokens"]))
+    mmap = bool(cfg.get("mmap", True))
+    train_tokens = load_tokens(_resolve(cfg["train_tokens"]), mmap=mmap)
+    val_tokens = load_tokens(_resolve(cfg["val_tokens"]), mmap=mmap)
 
     context = int(cfg["context"])
     batch_size = int(cfg["batch_size"])
@@ -90,6 +91,7 @@ def main() -> None:
         logits = model(x)
         loss = cross_entropy(logits, y)
         loss.backward()
+        model.tok_emb.zero_padding_grad()
         grad_norm = clip_grad_norm(model.parameters(), max_norm)
         optimizer.step()
 

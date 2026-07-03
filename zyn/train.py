@@ -21,6 +21,7 @@ def train_step(
     logits = model(x)
     loss = cross_entropy(logits, y, ignore_index=ignore_index)
     loss.backward()
+    model.tok_emb.zero_padding_grad()
     grad_norm = clip_grad_norm(model.parameters(), max_norm)
     optimizer.step()
     return float(loss.data), grad_norm

@@ -43,16 +43,19 @@ def create_app() -> FastAPI:
     def generate_endpoint(req: schemas.GenerateRequest) -> schemas.GenerateResponse:
         bundle = _require_bundle()
         s = app.state.settings
-        ids = bundle.tokenizer.encode(req.prompt, add_bos=True)
-        out = generate(
-            bundle.model,
-            np.asarray(ids),
-            max_new_tokens=req.max_new_tokens or s.max_new_tokens,
-            temperature=req.temperature if req.temperature is not None else s.temperature,
-            top_k=req.top_k if req.top_k is not None else s.top_k,
-            top_p=req.top_p if req.top_p is not None else s.top_p,
-            eos_id=bundle.tokenizer.eos_id,
-        )
+        try:
+            ids = bundle.tokenizer.encode(req.prompt, add_bos=True)
+            out = generate(
+                bundle.model,
+                np.asarray(ids),
+                max_new_tokens=req.max_new_tokens or s.max_new_tokens,
+                temperature=req.temperature if req.temperature is not None else s.temperature,
+                top_k=req.top_k if req.top_k is not None else s.top_k,
+                top_p=req.top_p if req.top_p is not None else s.top_p,
+                eos_id=bundle.tokenizer.eos_id,
+            )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         new_ids = out[0, len(ids):].tolist()
         return schemas.GenerateResponse(
             text=bundle.tokenizer.decode(new_ids, skip_specials=True),
@@ -67,30 +70,33 @@ def create_app() -> FastAPI:
         temperature = req.temperature if req.temperature is not None else s.temperature
         max_new = req.max_new_tokens or s.max_new_tokens
 
-        if req.tools:
-            sandbox = Sandbox(s.sandbox_dir, allow_write=s.allow_write, allow_shell=s.allow_shell)
-            agent = ToolAgent(
-                bundle.tokenizer,
-                sandbox,
+        try:
+            if req.tools:
+                sandbox = Sandbox(s.sandbox_dir, allow_write=s.allow_write, allow_shell=s.allow_shell)
+                agent = ToolAgent(
+                    bundle.tokenizer,
+                    sandbox,
+                    max_new_tokens=max_new,
+                    temperature=temperature,
+                )
+                result = agent.run(bundle.cached_model(), messages)
+                return schemas.ChatResponse(
+                    message=schemas.ChatMessage(role="assistant", content=result["answer"]),
+                    tool_calls=result["tool_calls"],
+                )
+
+            ids = build_prompt(messages, bundle.tokenizer)
+            out = generate(
+                bundle.model,
+                np.asarray(ids),
                 max_new_tokens=max_new,
                 temperature=temperature,
+                top_k=s.top_k,
+                top_p=s.top_p,
+                eos_id=bundle.tokenizer.eos_id,
             )
-            result = agent.run(bundle.cached_model(), messages)
-            return schemas.ChatResponse(
-                message=schemas.ChatMessage(role="assistant", content=result["answer"]),
-                tool_calls=result["tool_calls"],
-            )
-
-        ids = build_prompt(messages, bundle.tokenizer)
-        out = generate(
-            bundle.model,
-            np.asarray(ids),
-            max_new_tokens=max_new,
-            temperature=temperature,
-            top_k=s.top_k,
-            top_p=s.top_p,
-            eos_id=bundle.tokenizer.eos_id,
-        )
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         new_ids = out[0, len(ids):].tolist()
         return schemas.ChatResponse(
             message=schemas.ChatMessage(

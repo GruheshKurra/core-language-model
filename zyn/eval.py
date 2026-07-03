@@ -4,6 +4,8 @@ from typing import Iterable
 
 import numpy as np
 
+from zyn.backend import to_numpy
+
 
 def evaluate(model, batches: Iterable[tuple[np.ndarray, np.ndarray]], ignore_index: int | None = None) -> dict:
     total_nll = 0.0
@@ -11,7 +13,7 @@ def evaluate(model, batches: Iterable[tuple[np.ndarray, np.ndarray]], ignore_ind
     total_tokens = 0
 
     for x, y in batches:
-        logits = model(np.asarray(x, dtype=np.int64)).data
+        logits = to_numpy(model(np.asarray(x, dtype=np.int64)).data)
         V = logits.shape[-1]
         flat = logits.reshape(-1, V)
         t = np.asarray(y, dtype=np.int64).reshape(-1)

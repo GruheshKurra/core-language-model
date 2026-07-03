@@ -36,6 +36,15 @@ def to_numpy(array):
     return xp.asnumpy(array)
 
 
+def scatter_add(target, indices, source):
+    if xp is _np:
+        _np.add.at(target, indices, source)
+    else:
+        import cupyx
+
+        cupyx.scatter_add(target, indices, source)
+
+
 def is_gpu() -> bool:
     return xp is not _np
 

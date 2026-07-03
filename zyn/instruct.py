@@ -86,10 +86,15 @@ class MaskedBatcher:
         return len(self.tokens) - self.T - 1
 
     def next_batch(self) -> tuple[np.ndarray, np.ndarray]:
-        starts = self.rng.integers(0, self.max_start + 1, size=self.B)
-        idx = starts[:, None] + np.arange(self.T)[None, :]
+        for _ in range(20):
+            starts = self.rng.integers(0, self.max_start + 1, size=self.B)
+            idx = starts[:, None] + np.arange(self.T)[None, :]
+            keep = np.asarray(self.mask[idx + 1], dtype=bool)
+            if keep.any():
+                break
+        else:
+            raise RuntimeError("no trainable tokens found in 20 sampled batches; check mask")
         x = np.asarray(self.tokens[idx], dtype=np.int64)
         y = np.asarray(self.tokens[idx + 1], dtype=np.int64)
-        keep = np.asarray(self.mask[idx + 1], dtype=bool)
         y = np.where(keep, y, self.ignore_index)
         return x, y

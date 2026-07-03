@@ -13,7 +13,7 @@ class MicroBatcher:
         self._worker = None
 
     def _ensure_worker(self) -> None:
-        if self._worker is None:
+        if self._worker is None or self._worker.done():
             self._worker = asyncio.ensure_future(self._run())
 
     async def submit(self, item):

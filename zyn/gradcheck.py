@@ -1,14 +1,13 @@
 from __future__ import annotations
+from itertools import product
 from typing import Callable
-import numpy as np
+from zyn.backend import xp as np
 
 
 def numeric_grad(f: Callable[[np.ndarray], float], x: np.ndarray, eps: float = 1e-5) -> np.ndarray:
     x = x.astype(np.float64)
     grad = np.zeros_like(x)
-    it = np.nditer(x, flags=["multi_index"])
-    while not it.finished:
-        idx = it.multi_index
+    for idx in product(*(range(d) for d in x.shape)):
         orig = x[idx]
 
         x[idx] = orig + eps
@@ -18,7 +17,6 @@ def numeric_grad(f: Callable[[np.ndarray], float], x: np.ndarray, eps: float = 1
         x[idx] = orig
 
         grad[idx] = (f_plus - f_minus) / (2 * eps)
-        it.iternext()
     return grad
 
 

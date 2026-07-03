@@ -85,7 +85,7 @@ BPE vocabulary: 8k–16k tokens, with reserved special tokens (`<pad>`, `<bos>`,
 python -m pytest -q
 ```
 
-148 tests covering the autograd engine, gradient checks, tokenizer, batching, every model layer, the full GPT stack, loss + masking, optimizer, LR schedule, gradient clipping, training loop, checkpointing, evaluation, sampling, chat templating, instruction masking, the sandboxed tool suite, synthetic tool datasets, KV-cache equivalence, the tool-calling agent, inference bundles, the FastAPI endpoints, the micro-batcher, and the backend switch. The serving tests are skipped automatically if `fastapi`/`httpx` are not installed.
+153 tests covering the autograd engine, gradient checks, tokenizer, batching, every model layer, the full GPT stack, loss + masking, optimizer, LR schedule, gradient clipping, training loop, checkpointing, evaluation, sampling, chat templating, instruction masking, the sandboxed tool suite, synthetic tool datasets, KV-cache equivalence, the tool-calling agent, inference bundles, the FastAPI endpoints, the micro-batcher, and the backend switch. The serving tests are skipped automatically if `fastapi`/`httpx` are not installed.
 
 ## Serving
 
@@ -112,6 +112,22 @@ python scripts/finetune_instruct.py --checkpoint checkpoints/pretrain-small.npz
 python scripts/build_tool_dataset.py --n 2000
 python scripts/finetune_tools.py --checkpoint checkpoints/instruct.npz
 ```
+
+## RunPod A6000 quickstart
+
+Code lives on GitHub; the tokenized corpus + tokenizer live on the Hugging Face dataset hub (too large for git). On a fresh RunPod PyTorch pod (1× RTX A6000, CUDA 12):
+
+```bash
+git clone https://github.com/GruheshKurra/core-language-model.git
+cd core-language-model
+bash scripts/setup_pod.sh          # installs deps + cupy + pulls data from HF
+ZYN_BACKEND=cuda ZYN_DTYPE=float32 CUPY_TF32=1 \
+  python scripts/pretrain.py --config configs/a6000.json
+```
+
+`configs/a6000.json` uses `batch_size=128`, `seq=256`, `12000` steps (~2.2 epochs over the 180M-token codeparrot shard). `CUPY_TF32=1` enables Ampere tensor-core matmuls; `mmap=false` loads the token stream fully into RAM (the pod has plenty). Checkpoints land in `checkpoints/pretrain-a6000.npz` every 500 steps — resume with `--resume checkpoints/pretrain-a6000.npz`.
+
+Run ~50 steps first, check `nvidia-smi` VRAM headroom and step time, then raise `batch_size` if there's room before committing to the full run.
 
 ## Scale
 
