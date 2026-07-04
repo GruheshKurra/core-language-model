@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 from typing import Callable
 
 import numpy as np
@@ -47,6 +48,7 @@ def train(
         optimizer.lr = cosine_lr(step, lr_max, warmup_steps, max_steps, lr_min)
         x, y = get_batch()
         loss, grad_norm = train_step(model, optimizer, x, y, max_norm, ignore_index)
+        gc.collect()
         record = {"step": step, "loss": loss, "grad_norm": grad_norm, "lr": optimizer.lr}
         history.append(record)
         if log_every and (step % log_every == 0 or i == steps - 1):
