@@ -2,8 +2,9 @@
 data/raw/
 data/processed/
 
-# Model artifacts
+# Model artifacts (regenerate via export_bundle.py / run_post_pretrain.py)
 checkpoints/
+bundles/
 
 # Internal agent/task tracking — never commit
 tasks/
@@ -33,9 +34,17 @@ CHANGELOG.md
 *.key
 
 # Python / OS / editor
+.venv/
+venv/
+.pytest_cache/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .DS_Store
 .idea/
 .vscode/
+
+# AL-1 dev working folders (kept local; mod/ is the published Model A snapshot)
+model-a-scratch/
+model-b-opensource/
+!mod/CHECKLIST.md
